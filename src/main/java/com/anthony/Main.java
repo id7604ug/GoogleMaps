@@ -1,9 +1,11 @@
 package com.anthony;
+// Import all the google maps things
 import com.google.maps.ElevationApi;
 import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.model.ElevationResult;
 import com.google.maps.model.GeocodingResult;
+import com.google.maps.model.Geometry;
 import com.google.maps.model.LatLng;
 
 import java.util.ArrayList;
@@ -11,46 +13,48 @@ import java.io.*;
 import java.util.Scanner;
 
 public class Main {
-    static Scanner stringScanner = new Scanner(System.in);
+    private static Scanner stringScanner = new Scanner(System.in);
     public static void main(String[] args) throws Exception{
 
         String key = null;
-//        // Read key from file
-//        try (BufferedReader reader = new BufferedReader(new FileReader("key.txt"))){
-//            key = reader.readLine();
-//            System.out.println(key); // Key check
-//        } catch (Exception ioe) {
-//            System.out.println("No key file found, or could not read key. Please verify key.txt present");
-//            System.exit(-1); // Quit program - need to fix before continuing
-//        }
         // Read key from file
         try (BufferedReader reader = new BufferedReader(new FileReader("key.txt"))){
             key = reader.readLine();
-            System.out.println(key); // Keycheck
+//            System.out.println(key); // Keycheck
         } catch (Exception ioe){
             System.out.println("No key file found, or could not read key. Please verify key.txt present");
             System.exit(-1); // Quit program - need to fix before continuing
         }
 
-        // Create a context
+        // Create a context for the GeoApiContext
         // Do this one time at the start of your code, once you've read your key
         GeoApiContext context = new GeoApiContext().setApiKey(key);
+        System.out.println("What place would you like to find the elevation for? ");
+        // Get the query from the user
+        String address = stringScanner.nextLine();
 
+        // Query google for geoCoded result(s)
+        GeocodingResult[] results = GeocodingApi.geocode(context, address).await();
+        // Pull the full name of what the user most likely meant to search
+        String foundAddress = results[0].formattedAddress;
+        String place = results[0].formattedAddress.split(",")[0];
+        // Pull the geometry from the result
+        Geometry foundGeometry = results[0].geometry;
 
-        //We'll use ElevationAPI to request the elevation //todo implement finding the lat lng
-        LatLng mctcLatLng = new LatLng(44.973074, -93.283356);
-        ElevationResult[] results = ElevationApi.getByPoints(context, mctcLatLng).await();
+        // Create LatLng for found geometry
+        LatLng foundLatLng = foundGeometry.location;
+        ElevationResult[] foundElivation = ElevationApi.getByPoints(context, foundLatLng).await();
 
-        GeocodingResult[] results1 = GeocodingApi.geocode(context, "New York").await();
-
-         //All APIs seem to return an array of results.
+        //All APIs seem to return an array of results.
         // So we will expect an array with one result
-        if (results.length >= 1){
+        if (foundElivation.length >= 1){
             // Get first ElevationResult object
-            ElevationResult mctcElevation = results[0];
-            System.out.println("The elevation of MCTC above sea level is " + mctcElevation.elevation + " meters");
+            ElevationResult elevation = foundElivation[0];
+            // Output name of place
+            System.out.println("I think you searched for: " + foundAddress);
+            System.out.println("The elevation of " + place +" above sea level is " + elevation.elevation + " meters");
             // Let's do some rounding :)
-            System.out.println(String.format("The elevation of MCTC above sea lever is %.2f meters.", mctcElevation.elevation));
+            System.out.println(String.format("The elevation of " + place + " above the sea lever is %.2f meters.", elevation.elevation));
         }
     }
 }
