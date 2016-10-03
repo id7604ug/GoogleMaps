@@ -52,9 +52,9 @@ public class Main {
             ElevationResult elevation = foundElivation[0];
             // Output name of place
             System.out.println("I think you searched for: " + foundAddress);
-            System.out.println("The elevation of " + place +" above sea level is " + elevation.elevation + " meters");
-            // Let's do some rounding :)
-            System.out.println(String.format("The elevation of " + place + " above the sea lever is %.2f meters.", elevation.elevation));
+//            System.out.println("The elevation of " + place +" above sea level is " + elevation.elevation + " meters");
+            // Rounding
+            System.out.println(String.format("The elevation of " + place + " above sea level is %.2f meters.", elevation.elevation));
         }
     }
 }
